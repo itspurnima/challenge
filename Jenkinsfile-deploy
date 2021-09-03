@@ -1,0 +1,40 @@
+pipeline{
+    agent any
+    stages{
+        stage('scm checkout'){
+            steps{
+            script{
+                   currentBuild.displayName="Piclo"
+                }
+                echo "Getting the code from git"
+                git branch: 'test', url: 'https://github.com/PicloCodeChallenge/challenge-for-purnimakalisetty-.git'
+            }
+        }
+            stage('create docker image'){
+                steps{
+                bat 'docker build -t filescanner .'
+            }
+            }
+            stage('push to hub'){
+                steps{
+                    
+                    withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
+                   bat "docker login -u purnimakalisetty -p ${dockerhub}" 
+                  bat 'docker tag filescanner purnimakalisetty/piclo:firstimage'
+                   bat 'docker push purnimakalisetty/piclo:firstimage'
+                }
+            }
+        }
+           stage('Run Container on Dev Server'){
+               steps{
+                   script{
+                      def dockerRun = 'docker run -p 8080:8080 -d --name piclo purnimakalisetty/piclo:firstimage'
+                      sshagent(['sshagent']) {
+                          bat "apt-get update && apt-get install ssh -y"
+                       bat "ssh -o StrictHostKeyChecking=no ec2-user@18.234.78.68 ${dockerRun}"
+              }
+                   }
+          }
+           }
+    }
+}

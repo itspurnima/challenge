@@ -1,0 +1,25 @@
+pipeline{
+    agent any
+    stages{
+        stage('scm checkout'){
+            steps{
+                script{
+                   currentBuild.displayName="Infrastructure"
+                }
+                echo "Getting the code from git"
+                git branch: 'main', url: 'https://github.com/PicloCodeChallenge/challenge-for-purnimakalisetty-.git'
+            }
+        }
+        stage('terraform init and plan'){
+            steps{
+                echo "tf init and plan"
+                withAWS(credentials: 'jenkin-test-user', region: 'eu-west-2') {
+                bat 'terraform init'
+                bat 'terraform plan'
+                bat 'terraform apply -input=false -auto-approve'
+            }
+            }
+        }
+        
+    }
+}

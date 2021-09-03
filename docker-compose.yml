@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  filescanner:
+    build:
+      context: ./filescanner
+    volumes:
+      - ./filescanner:/usr/app/
+    command: ./local_test.sh
+    networks:
+      - custom_net
+networks:
+  custom_net:
